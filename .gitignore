@@ -1,0 +1,4 @@
+# Gitignore for study notes
+# Ignore OS files
+Thumbs.db
+.DS_Store
