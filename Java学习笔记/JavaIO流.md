@@ -1,51 +1,32 @@
-# IO流
+# IO 流
 
-## 📖 知识点概述
-I = Input（输入），O = Output（输出）。IO流用于从文件读数据和往文件写数据。
+## IO 流分类
 
-## 🧠 关键要点
-
-### IO流分类
 ```
 IO流
- ├── 字节流（读写所有文件：图片、视频、Word...）
- │    ├── FileInputStream    （读）
- │    └── FileOutputStream   （写）
- └── 字符流（读写纯文本文件：txt、java...）
-      ├── FileReader         （读）
-      └── FileWriter         （写）
+ ├── 字节流（读写任意文件）
+ │    ├── FileInputStream    — 读
+ │    └── FileOutputStream   — 写
+ ├── 字符流（读写纯文本）
+ │    ├── FileReader         — 读
+ │    └── FileWriter         — 写
+ ├── 缓冲流（提高效率）
+ │    ├── BufferedInputStream / BufferedOutputStream
+ │    ├── BufferedReader     — readLine() 按行读取
+ │    └── BufferedWriter
+ ├── 转换流（指定编码）
+ │    ├── InputStreamReader  — 字节→字符，可指定编码
+ │    └── OutputStreamWriter — 字符→字节
+ ├── 对象流（读写整个对象）
+ │    ├── ObjectInputStream  — readObject()
+ │    └── ObjectOutputStream — writeObject()
+ └── 打印流（方便打印，不抛异常）
+      ├── PrintStream        — System.out 就是它
+      └── PrintWriter        — 字符版
 ```
 
-### 字节流读文件
-```java
-// 一次读一个字节（慢）
-FileInputStream fis = new FileInputStream("D:\\test.txt");
-int b;
-while ((b = fis.read()) != -1) {
-    System.out.print((char) b);
-}
+## 文件拷贝（核心范例）
 
-// 一次读一个字节数组（快）
-FileInputStream fis = new FileInputStream("D:\\test.txt");
-byte[] buffer = new byte[1024];
-int len;
-while ((len = fis.read(buffer)) != -1) {
-    System.out.print(new String(buffer, 0, len));
-}
-```
-
-### 字节流写文件
-```java
-// 覆盖写
-FileOutputStream fos = new FileOutputStream("D:\\test.txt");
-fos.write("Hello".getBytes());
-
-// 追加写（加true参数）
-FileOutputStream fos = new FileOutputStream("D:\\test.txt", true);
-fos.write("追加内容".getBytes());
-```
-
-### 文件拷贝（核心练习）
 ```java
 try (FileInputStream fis = new FileInputStream("D:\\src.jpg");
      FileOutputStream fos = new FileOutputStream("D:\\dest.jpg")) {
@@ -54,23 +35,28 @@ try (FileInputStream fis = new FileInputStream("D:\\src.jpg");
     while ((len = fis.read(buffer)) != -1) {
         fos.write(buffer, 0, len);
     }
+} catch (IOException e) {
+    System.err.println("拷贝失败：" + e.getMessage());
 }
 ```
 
-### try-with-resources（自动关流）
+## 最常用的文本读取方式
+
 ```java
-// JDK 7+ 推荐写法，自动调用 close()，不用写 finally
-try (FileInputStream fis = new FileInputStream("D:\\test.txt")) {
-    int b;
-    while ((b = fis.read()) != -1) {
-        System.out.print((char) b);
+try (BufferedReader br = new BufferedReader(new FileReader("D:\\test.txt"))) {
+    String line;
+    while ((line = br.readLine()) != null) {
+        System.out.println(line);
     }
 } catch (IOException e) {
-    throw new RuntimeException(e);
+    System.err.println("读取失败：" + e.getMessage());
 }
 ```
 
-## ⚠️ 注意事项 / 常见坑
-1. 流用完一定要 close()，否则文件会被占用
-2. FileOutputStream 默认是覆盖写，追加要加 true 参数
-3. 字节流读中文会乱码，读文本用字符流（FileReader）
+## 三层套娃
+
+```
+FileInputStream    — 连接文件（最底层）
+InputStreamReader  — 字节→字符，指定编码（中间层）
+BufferedReader     — 加缓冲 + 按行读（最外层）
+```
