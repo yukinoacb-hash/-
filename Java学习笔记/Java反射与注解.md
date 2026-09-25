@@ -1,52 +1,54 @@
 # 反射
 
-## 什么是反射
-
-在运行时动态地获取类的信息、操作对象的属性和方法，而不是在编译时就写死。
-
-## 获取 Class 对象的三种方式
+## 获取 Class 对象
 
 ```java
-Class<User> clazz1 = User.class;              // 方式一
-Class<?> clazz2 = new User().getClass();       // 方式二
-Class<?> clazz3 = Class.forName("org.example.User"); // 方式三（最灵活）
+Class<?> clazz = Class.forName("org.example.User");
 ```
 
-## 常用反射操作
+## 创建对象
 
 ```java
-// 创建对象
-Object obj = clazz.getDeclaredConstructor().newInstance();
+// 无参构造
+User u = (User) clazz.getDeclaredConstructor().newInstance();
 
-// 调用方法
-Method method = clazz.getMethod("sayHello");
-method.invoke(obj);
-
-// 操作字段（包括私有）
-Field field = clazz.getDeclaredField("name");
-field.setAccessible(true);
-field.set(obj, "张三");
+// 有参构造
+Constructor<?> c = clazz.getDeclaredConstructor(String.class, int.class);
+User u = (User) c.newInstance("张三", 20);
 ```
 
-## 为什么需要反射
-
-`new` 是编译时写死，反射是运行时动态。框架在编写时不知道你要操作什么类，只能在运行时靠反射去加载。
-
-## 注解
+## 调用方法
 
 ```java
-@Retention(RetentionPolicy.RUNTIME)   // 运行时可用
-@Target(ElementType.METHOD)           // 用在方法上
-public @interface Log {
-    String value() default "";
+// 单个方法（已知方法名）
+Method m = clazz.getMethod("sayHello");
+m.invoke(u);
+
+// 私有方法需加 setAccessible(true)
+Method m2 = clazz.getDeclaredMethod("getInfo");
+m2.setAccessible(true);
+String result = (String) m2.invoke(u);
+
+// 查看所有方法（忘了方法名时）
+for (Method m : clazz.getDeclaredMethods()) {
+    System.out.println(m.getName());
 }
 ```
 
-## 注解的作用：标记 + 框架自动处理
+## 操作字段
 
 ```java
-@Log("添加用户")     // 只贴标签
-public void addUser() { /* 业务代码 */ }
+Field f = clazz.getDeclaredField("name");
+f.setAccessible(true);
+f.set(u, "李四");          // 赋值
+System.out.println(f.get(u)); // 取值
 ```
 
-框架用反射读取注解，自动在方法前后插入日志，不需要手动写重复代码。
+## 必要性
+
+```
+new            → 编译时写死
+Class.forName  → 运行时动态（从配置文件等字符串加载）
+```
+
+反射把"硬编码"变成"可配置"，框架底层都是这么干的。
