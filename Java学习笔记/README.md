@@ -19,6 +19,9 @@
 ### 反射
 - [📄 反射与注解](Java反射与注解.md) — Class.forName、invoke、动态调用
 
+### 数据库
+- [📄 JDBC](JavaJDBC.md) — 连接数据库、PreparedStatement、事务、连接池
+
 ---
 
 *最后更新: 2026-09-25*
