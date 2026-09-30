@@ -21,8 +21,13 @@
 
 ### 数据库
 - [📄 JDBC](JavaJDBC.md) — 连接数据库、PreparedStatement、事务、连接池
+- [📄 JDBC 实战](JavaJDBC实战.md) — 学生管理系统（三层架构 + 事务）
+
+### 苍穹外卖项目实战
+- [📄 第 1 课：三层架构](苍穹外卖-第1课-三层架构.md) — Spring Boot 项目搭建 + Controller/Service/Mapper
 - [📄 JDBC 实战](JavaJDBC实战.md) — 完整的学生成绩管理系统（CRUD + 事务 + 三层架构）
 
 ---
 
 *最后更新: 2026-09-25*
+
