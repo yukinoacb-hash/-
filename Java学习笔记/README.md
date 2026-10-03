@@ -25,9 +25,9 @@
 
 ### 苍穹外卖项目实战
 - [📄 第 1 课：三层架构](苍穹外卖-第1课-三层架构.md) — Spring Boot 项目搭建 + Controller/Service/Mapper
-- [📄 JDBC 实战](JavaJDBC实战.md) — 完整的学生成绩管理系统（CRUD + 事务 + 三层架构）
+- [📄 第 2 课：根据 id 查询](苍穹外卖-第2课-根据id查询.md) — @PathVariable、#{} 占位符、Result<Employee>
 
 ---
 
-*最后更新: 2026-09-25*
+*最后更新: 2026-10-03*
 
