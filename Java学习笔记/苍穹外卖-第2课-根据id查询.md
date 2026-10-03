@@ -99,6 +99,7 @@ public Result<Employee> findById(@PathVariable Long id) {
 - Service 接口加了方法，实现类必须加 `@Override` 实现，否则接口和实现类不一致会编译报错
 - `#{}` 括号里写的是 **实体类的属性名**（`id`），不是数据库列名
 - 记得 `import org.springframework.web.bind.annotation.PathVariable;`
+- `long` 和 `Long`：本次用哪个都能跑。习惯上主键 id 用包装类 `Long`，因为新增数据时 id 还没有值（是 null），`long` 装不了 null
 
 ## 🔗 相关链接
 
