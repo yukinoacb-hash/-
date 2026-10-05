@@ -152,6 +152,15 @@ id=7  zhangsan  张三       status=1
 3. **修改接口还没实测过**（数据库里 `update_time` 还停在插入时间）
 4. 备注：`employee.http` 还在 `src/main/java/com/sky/skytakeout/` 下，建议挪到项目根目录
 
+### ✅ 2026-10-05 更新：以上 1、2、3 已全部完成
+
+- `EmployeeMapper.xml` 已建好，`update` 改成动态 SQL（`<set>` + `<if>`）✅
+- 接口上的 `@Update` 注解已删除 ✅
+- PUT 已实测通过：只传 `id` + `name`，其余字段**一个都没被清空**，`update_time` 自动更新 ✅
+- 👉 **员工模块 CRUD 全部通关**
+
+**新发现的待办**：GET 响应里返回了 `password`，需要用 VO 把它挡掉。
+
 ---
 
 ## 六、下一步路线
@@ -174,6 +183,64 @@ id=7  zhangsan  张三       status=1
 
 ---
 
+## 七、自测批改记录（2026-10-05 首次自测）
+
+**成绩：4 题对 ✅ ｜ 3 题半对 ⚠️ ｜ 3 题不会 ❌**
+
+| 题 | 我的回答 | 判定 | 问题所在 |
+|---|---|---|---|
+| 1 `@RestController` vs `@Controller` | "接收 http 请求" | ⚠️ | 答的是功能，没答**区别**（视图名 vs JSON） |
+| 2 `@Autowired` | "请求对象" | ⚠️ | 方向对，说法不准：是"向 Spring **要**对象" |
+| 3 `@Mapper` / `@MapperScan` | 不知道 | ❌ | **重点补** |
+| 4 `#{}` vs `${}` | "前者可以防止 sql 注入" | ✅ | 对！再补上"为什么能防" |
+| 5 CRUD 四动作 | 只列了 4 个方法名 | ⚠️ | 注解 + 数据位置没答上 |
+| 6 三种取参方式 | "url 路径，？后，方法体" | ✅ | "方法体"应为**请求体** |
+| 7 时间字段谁填 | "前端可以随便填，所以要后端填" | ⚠️ | 意思对，表述反了 |
+| 8 忘写 WHERE | "会把所有数据删除" | ✅ | 对！ |
+| 9 状态码 | 不知道 | ❌ | **重点补**（404/405/415/500/refused） |
+| 10 为什么重新编译 | 不知道 | ❌ | **重点补**（class 文件才是运行的东西） |
+
+### 需要重点补的 3 块
+
+**① `@Mapper` / `@MapperScan`**
+```java
+@Mapper                       // 标在接口上：这是数据层接口
+public interface EmployeeMapper { ... }
+
+@MapperScan("com.sky.skytakeout.mapper")   // 标在启动类上：扫描整个包（批量）
+@SpringBootApplication
+public class SkyTakeoutApplication { ... }
+```
+- **Mapper 接口没有实现类**！实现是 MyBatis 运行时用**动态代理**生成的 ——
+  这就是"光有接口也能跑"的原因
+- 少了 `@MapperScan`（且没写 `@Mapper`）→ `required a bean of type 'EmployeeMapper' that could not be found`
+- `@Mapper` 是"单个"，`@MapperScan` 是"批量"，用哪个都行
+
+**② 五个状态码（排错必备）**
+
+| 状态码 | 含义 | 常见原因 | 去哪看 |
+|---|---|---|---|
+| Connection refused | 服务没启动 | 端口没人监听 | 有没有 ▶ 启动 |
+| 404 | 路径不存在 | URL 写错 | URL 拼写 |
+| 405 | 路径在、方法不对 | HTTP 方法用错 / 方法没注册（private、没编译） | 注解 + **有没有重新编译** |
+| 415 | 媒体类型不支持 | 忘写 `Content-Type: application/json` | 请求头 |
+| 500 | 服务器内部错误 | SQL 报错、唯一索引冲突、空指针 | **IDEA 控制台堆栈 `Caused by:`** |
+
+**③ 为什么必须重新编译**
+```
+你写的 .java  ──编译──►  .class  ──►  JVM 真正执行的是 .class
+                          ↑
+              IDEA 运行时 classpath = target/classes
+```
+- 改了 `.java` 不重新编译 → 跑的还是**旧 class** → 新接口"像不存在"（表现成 405）
+- 固定节奏：**改代码 → ⬛ 停止 → ▶ 重新运行**（XML 同理）
+
+### 要背下来的三张表
+1. **CRUD 对照表**（方法 / 注解 / 数据放哪）
+2. **状态码表**（上面那张）
+3. **三种取参方式**（`@PathVariable` / `@RequestParam` / `@RequestBody`）
+
+---
 ## 🔗 相关链接
 
 - [第 1 课：三层架构](苍穹外卖-第1课-三层架构.md)

@@ -25,14 +25,18 @@
 
 ### 苍穹外卖项目实战
 - [📄 第 1 课：三层架构](苍穹外卖-第1课-三层架构.md) — Spring Boot 项目搭建 + Controller/Service/Mapper
+- [🗺️ 学习进度与路线图](苍穹外卖-学习进度与路线图.md) — 已完成 / 进行中 / 待学清单 + 已踩过的坑总表
 - [📄 阶段复习：员工 CRUD 总结](苍穹外卖-阶段复习-员工CRUD总结.md) — 知识地图 + 自测 12 问 + 项目现状快照
 - [📄 第 2 课：根据 id 查询](苍穹外卖-第2课-根据id查询.md) — @PathVariable、#{} 占位符、Result<Employee>
 - [📄 第 3 课：新增员工 POST](苍穹外卖-第3课-新增员工POST.md) — @PostMapping、@RequestBody、405 排查
 - [📄 第 4 课：删除员工 DELETE](苍穹外卖-第4课-删除员工DELETE.md) — @DeleteMapping、@PathVariable、RESTful 方法对照表
 - [📄 第 5 课：修改员工 PUT](苍穹外卖-第5课-修改员工PUT.md) — @PutMapping、@Update、UPDATE 忘写 WHERE 的事故
 - [📄 第 6 课：动态 SQL（MyBatis XML）](苍穹外卖-第6课-动态SQL(MyBatis%20XML).md) — <if> / <set>、namespace 绑定规则、全字段更新的正解
+- [📄 第 7 课：登录与密码加密（MD5）](苍穹外卖-第7课-登录与密码加密(MD5).md) — 为什么不能明文存密码、MD5 三大特点、彩虹表/加盐/BCrypt、DigestUtils
+- [📄 第 8 课：登录（上）—— 验身份 + DTO](苍穹外卖-第8课-登录与DTO.md) — 登录拆成两步、DTO/Entity 的区别、登录数据流
+- [📄 第 9 课：JWT 通行证](苍穹外卖-第9课-JWT通行证.md) — 无状态问题、Session vs JWT、三段结构、为什么伪造不了、jjwt 依赖
 
 ---
 
-*最后更新: 2026-10-03*
+*最后更新: 2026-10-05*
 
