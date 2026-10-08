@@ -14,6 +14,8 @@
 - [x] 第 5 课：@SpringBootApplication 做了什么
 - [x] 第 6 课：@Transactional — Spring 的事务管理
 - [x] 第 7 课：REST API（HTTP 4 种请求 + 3 种取参注解）
+- [x] 第 8 课：MyBatis 补充知识
+- [x] 第 9 课：Spring MVC 是什么（第 10 课前置）
 
 ---
 
@@ -220,3 +222,75 @@ Controller → Service → Mapper
 </select>
 ```
 
+---
+
+## 第 9 课：Spring MVC 是什么（第 10 课前置知识）
+
+### 一句话
+
+Spring MVC 是 **Spring 家族里专门"处理网页请求"的模块** —— 请求怎么找到你那个方法、参数怎么变成对象、结果怎么变回 JSON，全是它干的。
+
+### 拆开念：MVC
+
+| 字母 | 全称 | 含义 | 在你项目里是谁 |
+|---|---|---|---|
+| M | Model | 数据 | `Employee` / `Result` 里的 `data` |
+| V | View | 页面 | 前后端分离后基本不用（你返回的是 JSON，不是页面） |
+| C | Controller | 控制器 | `EmployeeController` |
+
+### 一个请求进来，Spring MVC 干了这些（对着你的代码看）
+
+```
+POST /employee/login  {username, password}
+   │
+   ▼
+① DispatcherServlet       总调度台，所有请求先到它手里
+   │  ② 查"路由表"：URL=/employee/login 且是 POST → 该调哪个方法？
+   │        → EmployeeController.login()
+   ▼
+③ 拦截器（马上要写的"保安"）   ← 第 10 课就在这里插一脚
+   │
+   ▼
+④ 请求体 JSON 转成对象      {"username":...} → EmployeeLoginDTO（@RequestBody 的功劳）
+   │
+   ▼
+⑤ 调用你的 login(dto)
+   │
+   ▼
+⑥ 返回值 Result 转成 JSON   （@ResponseBody 的功劳）
+   │
+   ▼
+⑦ 写回浏览器
+```
+
+### Spring / Spring MVC / Spring Boot 的关系（面试常问）
+
+```
+Spring Boot（脚手架 + 自动配置）
+   │  帮你把下面这些"一键装好"
+   ├── Spring 内核（IoC 容器 / DI / AOP）    ← 第 1~4 课学的 Bean 管理
+   └── Spring MVC（Web 层：收请求、发响应）   ← 你写的 Controller 全靠它
+```
+
+| 名字 | 是什么 | 管什么 |
+|---|---|---|
+| **Spring** | 框架内核 | 管对象（Bean）、依赖注入、事务 |
+| **Spring MVC** | Spring 的一个模块 | 管"HTTP 请求 → 你的方法 → HTTP 响应" |
+| **Spring Boot** | 脚手架 / 自动配置（严格说不是框架） | 把上面这些都装好、配好，你只写业务 |
+
+### 你其实一直在用它 —— 这些注解全是 Spring MVC 的
+
+| 注解 | 作用 |
+|---|---|
+| `@RestController` | 声明这是个接收请求的类（= `@Controller` + `@ResponseBody`） |
+| `@RequestMapping` / `@GetMapping` / `@PostMapping` / `@PutMapping` / `@DeleteMapping` | 把 URL 绑到方法上（路由表） |
+| `@RequestBody` | 请求体 JSON → 对象 |
+| `@PathVariable` | URL 里的 `{id}` → 方法参数 |
+| `@RequestParam` | URL 里的 `?key=value` → 方法参数 |
+
+> 所以三层架构里，**Controller 那一层就是 Spring MVC 的地盘**；Service / Mapper 跟它没关系。
+
+### 为什么第 10 课要讲它
+
+因为**拦截器就是 Spring MVC 提供的机制** —— 它插在"DispatcherServlet 之后、Controller 之前"那一环。
+理解了上面这张流程图，就知道"保安"该站哪个位置了。
