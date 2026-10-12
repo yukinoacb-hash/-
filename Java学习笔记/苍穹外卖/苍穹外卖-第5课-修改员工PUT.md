@@ -133,5 +133,5 @@ UPDATE employee SET name = '张三' WHERE id=1   -- ✓
 
 ## 🔗 相关链接
 
-- 上一课：[苍穹外卖-第4课-删除员工DELETE](苍穹外卖-第4课-删除员工DELETE.md)
-- 对照复习：[JDBC 实战（学生管理系统）](JavaJDBC实战.md)
+- 上一课：[苍穹外卖-第4课-删除员工DELETE((苍穹外卖-第4课-删除员工DELETE.md)
+- 对照复习：[JDBC 实战（学生管理系统）((JavaJDBC实战.md)

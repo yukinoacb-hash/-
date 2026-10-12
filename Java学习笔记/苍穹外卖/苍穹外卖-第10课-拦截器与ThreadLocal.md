@@ -240,8 +240,8 @@ BaseContext.setCurrentId(empId);
 ## 🔗 相关链接
 
 - [第 9 课：JWT 通行证](苍穹外卖-第9课-JWT通行证.md)
-- [Java 多线程](Java多线程.md)
-- [Spring 基础学习](Spring基础学习.md)
+- [Java 多线程](../Java基础/Java多线程.md)
+- [Spring 基础学习](../Spring/Spring基础学习.md)
 
 ## 🧩 第 2 步：LoginCheckInterceptor 逐行解析
 
@@ -1133,3 +1133,216 @@ registry.addInterceptor(loginCheckInterceptor)   // ① 派谁去   → LoginChe
 ---
 
 *创建于 2026-10-08*
+---
+
+# 🎯 拦截器到底是干嘛用的（一句话版 · 2026-10-12 补）
+
+## 一句话定义
+
+> **拦截器 = Spring MVC 在「请求到达 Controller 之前 / 处理完之后」给你留的一个插口。你往里面插什么代码，它就干什么。**
+
+⭐ 关键认知：**拦截器本身不是"验票功能"，它是一个"位置"。**
+黑马项目里我们在那个位置插了"验票"，所以它看起来像闸机。
+换掉里面的代码，它立刻能变成"日志记录器"或"限流器"。
+
+## 它在请求流程里的位置
+
+```text
+浏览器发请求
+   ↓
+Tomcat 接到
+   ↓
+【拦截器 preHandle】          ← 你的代码在这里插队
+   ↓ 返回 true 才继续
+Controller（你的业务方法）
+   ↓
+【拦截器 postHandle】
+   ↓
+【拦截器 afterCompletion】    ← 请求结束了，这里打扫卫生
+   ↓
+响应回到浏览器
+```
+
+## 本质：框架回调你的代码
+
+- 你**不用**在任何地方写 `interceptor.preHandle(...)`
+- 是 **Spring 自己在合适的时机来调你**
+- 你只需要「实现接口 + 注册」，剩下的框架包了
+
+（这也是"谁在调用拦截器"的答案：**框架**。和 `addInterceptors` 一样都是回调。）
+
+## 三个插口
+
+| 插口 | 时机 | 项目里用它干嘛 |
+|---|---|---|
+| `preHandle` | 进 Controller **之前** | 验票：放行 or 拦下 |
+| `postHandle` | Controller 之后、渲染之前 | 没用上 |
+| `afterCompletion` | 请求**彻底结束** | 清 ThreadLocal |
+
+## 它能干什么
+
+凡是「**每个接口都要做、但和具体业务无关**」的事：
+
+- 验登录 ✓（本项目）
+- 记录请求日志 / 统计耗时
+- 限流（同一 IP 一秒 100 次就拒）
+- 打印请求参数方便排查
+
+## 它在咱们项目里具体干的
+
+`LoginCheckInterceptor.preHandle` 四件事：
+
+1. 从请求头取 token
+2. `JwtUtil.parseJWT` 验签
+3. ✔ 通过 → `empId` 存进 `BaseContext`（ThreadLocal）→ `return true` 放行
+4. ✘ 失败 → `response.setStatus(401)` → `return false` 拦下
+
+`afterCompletion` 一件事：`BaseContext.removeCurrentId()` 打扫卫生。
+
+## ⚠️ 一个最容易混的点
+
+| | 是什么 |
+|---|---|
+| **拦截器** | 一种**机制 / 位置** |
+| **鉴权（验票）** | 一种**业务**，可以插在拦截器里，也可以插在别处 |
+
+两者不是一回事。**先有插口，才有插在插口上的业务。**
+
+## 再分一层：拦截器 vs 过滤器
+
+| | 在哪一层 | 能拿到什么 |
+|---|---|---|
+| **Filter 过滤器** | Servlet 层，更靠外 | 只有"这次是个 HTTP 请求" |
+| **Interceptor 拦截器** | Spring MVC 层，更靠里 | 能拿到 `handler`，知道"这次要执行哪个 Controller 的哪个方法" |
+
+所以拦截器能干"更懂业务"的事 —— 比如 `if (!(handler instanceof HandlerMethod))` 这种判断，过滤器做不到。
+
+## ⭐ 收束
+
+> 拦截器就是 Spring MVC 留的**"插队位"**：请求进来先过你，你点头才放行。
+---
+
+# 🔍 "插口"和"插头"：那些活儿不都是 LoginCheckInterceptor 干的吗？（2026-10-12 补）
+
+**疑问**：取 token、验签、存 ThreadLocal、401、removeCurrentId —— 这些活儿确实全在 `LoginCheckInterceptor` 这个类里。那为什么说"拦截器是个位置，不是验票功能"？
+
+**答**：活儿确实都是这个类干的。但要分清「**这个类里，哪部分是你写的、哪部分是框架提供的**」。
+
+## 拆成三样东西
+
+| 东西 | 谁提供 | 能换吗 |
+|---|---|---|
+| **插口形状** —— `HandlerInterceptor` 接口 | Spring MVC | ❌ 不能（框架认这个形状） |
+| **调用时机** —— preHandle / postHandle / afterCompletion | Spring MVC | ❌ 不能 |
+| **里面写什么** —— 取 token、验签、塞 ThreadLocal | **你** | ✅ 随便换 |
+
+`LoginCheckInterceptor = 插口形状 + 你写的业务代码`。
+
+## ⭐ 最尖锐的一点
+
+> **你的类没有"拦人"的权力，它只有"说不"的权力。**
+
+```java
+return false;   // ← 你只是说了个"不"
+```
+
+真正"不往下走"（不调用 Controller、直接返回响应）的是**框架**。所以你写的是**意见**，执行权在框架手里。
+
+同理 `BaseContext.removeCurrentId()` 里那行代码是你写的，但**"什么时候调用它"是框架决定的**（`afterCompletion` 这个时机）。
+
+## 一个实验就能证明
+
+把 `preHandle` 里的验票代码**整段换成** `System.out.println(request.getRequestURI())`：
+
+- 这个类**还是**拦截器（还是实现 `HandlerInterceptor`、还是要注册、还是被框架调用）
+- 但它**不再是"验票器"**了 —— 类名也该从 `LoginCheckInterceptor` 改成 `LogInterceptor`
+
+👉 **换掉的是业务，不变的是机制。** 这才叫"拦截器是个位置"。
+
+## 所以"拦截器"这个词有两层意思
+
+| 说法 | 指什么 |
+|---|---|
+| 窄义 | `HandlerInterceptor` 这套**机制**（接口 + 三个回调时机 + 注册） |
+| 广义 | 你写的那个**类**（`LoginCheckInterceptor`） |
+
+二者不矛盾，就是「**插口**」和「**插在插口上的设备**」。
+
+## 为什么搞清这个有用
+
+就知道「**忘了 `@Configuration` 拦截器为什么就不生效**」了：
+
+框架没登记你的插头 → 框架根本不会来调你的 `preHandle` → 类写得再对也白搭。
+**编译全绿，但一次都不会被调用。**
+---
+
+# 🧵 "类里都验了 JWT 了，为什么还有拦截器的事"（2026-10-12 补）
+
+## 一句话
+
+> **因为「写好的代码」和「会跑的代码」是两回事。**
+
+`LoginCheckInterceptor` 里那几行 JWT 验证代码，**自己没有能力让自己执行**。
+
+## 铁证：全项目找不到调用它的地方
+
+`preHandle` 是**回调方法** —— 全项目搜索 `preHandle`，**只有定义，没有调用**。
+
+如果你在 IDEA 里对着 `preHandle` 按 Ctrl + 左键（或右键 → Find Usages），会发现**找不到调用者**。
+
+👉 因为调用它的不是你的代码，是 **Spring 框架内部**（`DispatcherServlet`）。
+
+## 谁在调用它？链条长这样
+
+```text
+WebMvcConfiguration.addInterceptors(...)
+    → 把 LoginCheckInterceptor 登记进"拦截器名单"
+        → 框架启动时记住这份名单
+            → 每次有请求进来，DispatcherServlet 挨个调用名单上每个拦截器的 preHandle
+                → 你的 JWT 验证代码，这才被执行
+```
+
+**注册 = 让框架知道"有这么个人，每次来人让他查一下"。**
+不注册 = 这个人还在，但没人安排他站岗。
+
+## 类比
+
+你写了一份《查工牌操作手册》（`preHandle` 里那十几行）。
+
+- 手册放在抽屉里，**没人翻** = 门禁形同虚设
+- 拦截器机制 = **安排一个人站到门口，每来一个人就翻一次手册**
+
+手册是**内容**，安排人站岗是**机制**。少了哪一样，门都守不住。
+
+## 反面验证：把注册删掉会发生什么
+
+注释掉 `@Configuration`（或者删掉 `addInterceptors` 里的登记），重启项目，然后发一个**不带 token** 的请求：
+
+```http
+GET http://localhost:8080/employee
+```
+
+| 状态 | 结果 |
+|---|---|
+| 注册正常 | **401**（拦截器拦下了） |
+| 注册删掉 | **200**（所有人都能进！） |
+
+⚠️ 注意：删掉之后，`LoginCheckInterceptor` 这个类**还在**、JWT 验证代码**还在**、编译**还是绿的** —— 但一次都不会跑。**接口全员裸奔。**
+
+这就是"返回 401 的其实不是你的类，而是拦截器机制"的证据。
+
+## 名字其实已经把答案写在脸上了
+
+`LoginCheckInterceptor` = **LoginCheck**（职责：登录检查） + **Interceptor**（身份：拦截器）
+
+不是"拦截器"和"JWT 验证"两件事打架 —— 它们是**同一个东西的两面**：
+
+| | 是什么 |
+|---|---|
+| `Interceptor` 那半 | 你的**身份**，决定你什么时候被调用 |
+| `LoginCheck` 那半 | 你的**职责**，决定被调用时干什么 |
+
+## ⭐ 收束
+
+> **拦截器机制的存在，就是为了让「JWT 验证代码」有机会被执行，并且让框架知道"该在什么时机调用它"。**
+> 否则你写的只是一段永远不会跑的死代码。

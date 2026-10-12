@@ -72,7 +72,7 @@ public  Result insert(...)   // ✓ 统一写 public
 ### 坑 3：Connection refused（连接被拒绝）= 服务压根没启动
 
 ```
-io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: localhost/[0:0:0:0:0:0:0:1]:8080
+io.netty.channel.AbstractChannel$AnnotatedConnectException: Connection refused: localhost/[0:0:0:0:0:0:0:1(:8080
 ```
 
 **含义**：8080 端口上没有程序在监听，TCP 连都连不上。**和 404/405 完全是两回事**。
@@ -115,5 +115,5 @@ Started SkyTakeoutApplication in 3.xxx seconds
 
 ## 🔗 相关链接
 
-- 上一课：[苍穹外卖-第2课-根据id查询](苍穹外卖-第2课-根据id查询.md)
-- 对照复习：[JDBC 实战（学生管理系统）](JavaJDBC实战.md)
+- 上一课：[苍穹外卖-第2课-根据id查询((苍穹外卖-第2课-根据id查询.md)
+- 对照复习：[JDBC 实战（学生管理系统）((JavaJDBC实战.md)

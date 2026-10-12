@@ -103,5 +103,5 @@ public Result<Employee> findById(@PathVariable Long id) {
 
 ## 🔗 相关链接
 
-- 第 1 课：[苍穹外卖-第1课-三层架构.md](苍穹外卖-第1课-三层架构.md)
-- JDBC 里的 PreparedStatement：[JavaJDBC.md](JavaJDBC.md)
+- 第 1 课：[苍穹外卖-第1课-三层架构.md((苍穹外卖-第1课-三层架构.md)
+- JDBC 里的 PreparedStatement：[JavaJDBC.md((JavaJDBC.md)
